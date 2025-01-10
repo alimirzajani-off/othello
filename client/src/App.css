@@ -1,0 +1,143 @@
+.game_board{ 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.board {
+  padding: 2vmin; /* پدینگ متناسب با اندازه صفحه */
+  display: grid;
+  grid-template-columns: repeat(8, 1fr); /* 8 ستون */
+  grid-template-rows: repeat(8, 1fr);    /* 8 ردیف */
+  gap: 1vmin; /* فاصله بین سلول‌ها */
+  aspect-ratio: 1 / 1; /* نسبت 1:1 برای برد */
+  width: 90vmin;
+  max-width: 90vmin;
+  background: #4CAF50;
+  /* margin: auto; */
+  border-radius: 8px; /* گوشه‌های گرد برای زیبایی */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.cell_container {
+  background: #006800;
+  border-radius: 8px; /* گوشه‌های گرد متناسب */
+  padding: 0.5vmin; /* فاصله داخلی سلول */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cell {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* font-size: calc(90vmin / 20); فونت متناسب با اندازه برد */
+  box-sizing: border-box;
+  border-radius: 50%; /* دایره‌ای کردن محتوا */
+  /* background-color: #fff; رنگ پیش‌فرض */
+  /* transition: transform 0.3s ease, background-color 0.3s ease; */
+}
+
+.cell.legal-move {
+  outline: 2px dashed #ffff0063; /* خط چین دور سلول */
+  /* background-color: rgba(255, 255, 0, 0.3); زمینه زرد شفاف */
+  cursor: pointer; /* نشانگر به صورت اشاره‌گر */
+  transition: background-color 0.3s ease;
+}
+
+.bot-thinking {
+  font-size: 1.2rem;
+  color: #ff0;
+  margin-top: 1rem;
+  text-align: center;
+}
+
+/* استایل مخصوص موبایل */
+@media screen and (max-width: 600px) {
+  .board {
+    width: 90% !important; 
+    max-width: 90% !important;
+    gap: 0.5vmin !important; /* فاصله کمتر بین سلول‌ها */
+  }
+
+  .cell {
+    width: 100% !important;
+    /* font-size: calc(90vmin / 25); فونت کوچک‌تر برای موبایل */
+  }
+}
+
+.dropDown{
+display: flex;
+flex-direction: column;
+gap: 8px;
+select{
+  height: 2rem;
+}
+}
+
+.game-over {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(0, 0, 0, 0.7); /* پس‌زمینه نیمه‌شفاف */
+  z-index: 10;
+}
+
+.reset-button {
+  padding: 1rem 2rem;
+  font-size: 1.5rem;
+  background-color: #4caf50; /* سبز */
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.reset-button:hover {
+  background-color: #388e3c;
+}
+
+.reset-button:active {
+  background-color: #2e7d32;
+}
+
+.board_counter{
+  padding: 0.75rem;
+  border-radius: 1rem;
+  background-color: #ff0;
+}
+
+.game_status{
+  margin: 0.5rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.currentPlayer{
+  color: #fff;
+  background-color: #006800;
+  border-radius: 15px;
+  padding: 0.25rem;
+  position: absolute;
+  bottom: -18px;
+}
+
+.game_timer{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0.5rem;
+}

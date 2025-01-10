@@ -1,0 +1,22 @@
+{
+  // "files": [],
+  // "references": [
+  //   { "path": "./tsconfig.app.json" },
+  //   { "path": "./tsconfig.node.json" }
+  // ],
+  "compilerOptions": {
+    "lib": ["DOM", "ESNext"], // برای پشتیبانی از Web Worker
+    "moduleResolution": "node",
+    "module": "ESNext",
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "strict": false,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "noEmitOnError": false
+  },
+  "include": ["src", "vite-env.d.ts", "src/**/*", "src/global.d.ts"]
+}
