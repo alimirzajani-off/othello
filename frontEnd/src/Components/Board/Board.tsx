@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import Worker from "../minimaxWorker.ts?worker";
+import Worker from "../../minimaxWorker.ts?worker";
 import {
   initializeBoard,
   flipCells,
@@ -8,9 +8,10 @@ import {
   getLegalMoves,
   Counter,
   // isGameOver,
-} from "../Utils/gameLogic";
-import Cell from "./Cell";
+} from "../../Utils/gameLogic";
+import Cell from "../Cell";
 import { motion } from "framer-motion";
+import "./Board.css";
 
 interface BoardProps {
   difficulty: string;
@@ -22,7 +23,9 @@ const Board = ({ difficulty }: BoardProps) => {
   const [currentPlayer, setCurrentPlayer] = useState<Player>("black");
   const [isBotThinking, setIsBotThinking] = useState(false);
   const [isRunning] = useState(true);
-  // const [gameOver, setGameOver] = useState(false);
+  const [gameOver, setGameOver] = useState(false);
+  const [gameOverMessage, setGameOverMessage] = useState("");
+
   const [seconds, setSeconds] = useState(0);
 
   useEffect(() => {
@@ -69,16 +72,19 @@ const Board = ({ difficulty }: BoardProps) => {
   };
 
   const handleClick = (x: number, y: number) => {
-    const depth = getDepthByDifficulty(); // عمق را بر اساس سختی دریافت می‌کنیم
+    const depth = getDepthByDifficulty();
     if (isBotThinking || !isValidMove(board, x, y, currentPlayer)) return;
 
     const newBoard = flipCells(board, x, y, currentPlayer);
-
     setBoard(newBoard);
+    checkGameOver();
 
-    setCurrentPlayer(currentPlayer === "black" ? "white" : "black");
+    if (gameOver) return;
 
-    if (currentPlayer === "black") {
+    const nextPlayer = currentPlayer === "black" ? "white" : "black";
+    setCurrentPlayer(nextPlayer);
+
+    if (nextPlayer === "white") {
       const worker = new Worker();
       setIsBotThinking(true);
 
@@ -86,15 +92,22 @@ const Board = ({ difficulty }: BoardProps) => {
 
       worker.onmessage = (e) => {
         const { bestMove } = e.data;
+
         if (bestMove) {
           const [botX, botY] = bestMove;
+          if (!isValidMove(newBoard, botX, botY, "white")) return;
           setTimeout(() => {
             const updatedBoard = flipCells(newBoard, botX, botY, "white");
             setBoard(updatedBoard);
-            setCurrentPlayer("black");
+            checkGameOver();
+            if (!gameOver) setCurrentPlayer("black");
             setIsBotThinking(false);
             worker.terminate();
-          }, 3000);
+          }, 750);
+        } else {
+          setCurrentPlayer("black");
+          setIsBotThinking(false);
+          worker.terminate();
         }
       };
     }
@@ -108,7 +121,8 @@ const Board = ({ difficulty }: BoardProps) => {
     setBoard(initializeBoard()); // ریست کردن برد
     setCurrentPlayer("black"); // بازیکن شروع مجدد
     setIsBotThinking(false); // اطمینان از عدم تفکر ربات
-    // setGameOver(false);
+    setGameOver(false); // غیرفعال کردن حالت پایان
+    setGameOverMessage("");
   };
 
   useEffect(() => {
@@ -124,6 +138,47 @@ const Board = ({ difficulty }: BoardProps) => {
     });
     setBoardCounter(counter);
   }, [board, currentPlayer]);
+
+  const checkGameOver = () => {
+    const blackMoves = getLegalMoves(board, "black");
+    const whiteMoves = getLegalMoves(board, "white");
+
+    const blackCount = board.flat().filter((cell) => cell === "black").length;
+    const whiteCount = board.flat().filter((cell) => cell === "white").length;
+
+    // شرایطی که بازی تمام می‌شود:
+    if (blackMoves.length === 0 && whiteMoves.length === 0) {
+      if (blackCount > whiteCount) {
+        setGameOverMessage("بازی تمام شد! مشکی برنده شد");
+      } else if (whiteCount > blackCount) {
+        setGameOverMessage("بازی تمام شد! سفید برنده شد");
+      } else {
+        setGameOverMessage("بازی تمام شد! مساوی شد");
+      }
+      setGameOver(true);
+      return;
+    }
+
+    // اگر یکی از بازیکنان دیگر مهره‌ای ندارد:
+    if (blackCount === 0 || whiteCount === 0) {
+      setGameOverMessage(
+        blackCount === 0
+          ? "بازی تمام شد! سفید برنده شد"
+          : "بازی تمام شد! مشکی برنده شد"
+      );
+      setGameOver(true);
+      return;
+    }
+
+    // اگر بازیکن فعلی حرکت قانونی ندارد، نوبت به بازیکن دیگر منتقل می‌شود:
+    if (currentPlayer === "black" && blackMoves.length === 0) {
+      setGameOverMessage("مشکی حرکت قانونی ندارد. نوبت سفید!");
+      setCurrentPlayer("white");
+    } else if (currentPlayer === "white" && whiteMoves.length === 0) {
+      setGameOverMessage("سفید حرکت قانونی ندارد. نوبت مشکی!");
+      setCurrentPlayer("black");
+    }
+  };
 
   return (
     <>
@@ -152,6 +207,16 @@ const Board = ({ difficulty }: BoardProps) => {
             <path d="M440-122q-121-15-200.5-105.5T160-440q0-66 26-126.5T260-672l57 57q-38 34-57.5 79T240-440q0 88 56 155.5T440-202v80Zm80 0v-80q87-16 143.5-83T720-440q0-100-70-170t-170-70h-3l44 44-56 56-140-140 140-140 56 56-44 44h3q134 0 227 93t93 227q0 121-79.5 211.5T520-122Z" />
           </svg>
         </div>
+        <div>
+          سطح بازی:
+          {difficulty == "easy" ? (
+            <>آسون</>
+          ) : difficulty == "medium" ? (
+            <>متوسط</>
+          ) : (
+            <>سخت </>
+          )}
+        </div>
       </div>
       <div className="board">
         {board.map((row, x) =>
@@ -164,6 +229,7 @@ const Board = ({ difficulty }: BoardProps) => {
                 key={`${x}-${y}`}
                 value={cell}
                 className={`${
+                  // isLegalMove ? "legal-move" : ""
                   isLegalMove && currentPlayer == "black" ? "legal-move" : ""
                 }`}
                 onClick={() => handleClick(x, y)}
@@ -191,13 +257,12 @@ const Board = ({ difficulty }: BoardProps) => {
           صبر کن.ربات داره فکر میکنه...
         </motion.div>
       )}
-      {/* {gameOver && (
+      {gameOver && (
         <div className="game-over">
-          <button className="reset-button" onClick={resetGame}>
-            شروع مجدد
-          </button>
+          <p>{gameOverMessage}</p>
+          <button onClick={resetGame}>Restart Game</button>
         </div>
-      )} */}
+      )}
     </>
   );
 };

@@ -1,4 +1,4 @@
-import Board from "./Components/Board";
+import Board from "./Components/Board/Board";
 import "./App.css";
 import { useState } from "react";
 

@@ -7,7 +7,6 @@ import {
   Player,
 } from "./Utils/gameLogic";
 
-// مدیریت پیام دریافتی
 onmessage = (e: MessageEvent) => {
   const { board, player, depth } = e.data;
 
@@ -42,9 +41,8 @@ export const minimax = (
   alpha: number = -Infinity,
   beta: number = Infinity
 ): number => {
-  if (depth === 0 || getValidMoves(board, player).length === 0) {
+  if (depth === 0 || getValidMoves(board, player).length === 0)
     return evaluateBoard(board, player);
-  }
 
   const validMoves = getValidMoves(
     board,
@@ -65,7 +63,7 @@ export const minimax = (
       );
       maxEval = Math.max(maxEval, evalScore);
       alpha = Math.max(alpha, evalScore);
-      if (beta <= alpha) break; // بریدن شاخه
+      if (beta <= alpha) break;
     }
     return maxEval;
   } else {
@@ -75,7 +73,7 @@ export const minimax = (
       const evalScore = minimax(newBoard, depth - 1, true, player, alpha, beta);
       minEval = Math.min(minEval, evalScore);
       beta = Math.min(beta, evalScore);
-      if (beta <= alpha) break; // بریدن شاخه
+      if (beta <= alpha) break;
     }
     return minEval;
   }

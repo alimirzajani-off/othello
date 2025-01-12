@@ -1,0 +1,14 @@
+.board {
+    padding: 2vmin; /* پدینگ متناسب با اندازه صفحه */
+    display: grid;
+    grid-template-columns: repeat(8, 1fr); /* 8 ستون */
+    grid-template-rows: repeat(8, 1fr);    /* 8 ردیف */
+    gap: 1vmin; /* فاصله بین سلول‌ها */
+    aspect-ratio: 1 / 1; /* نسبت 1:1 برای برد */
+    width: 90vmin;
+    max-width: 90vmin;
+    background: #4CAF50;
+    /* margin: auto; */
+    border-radius: 8px; /* گوشه‌های گرد برای زیبایی */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  }

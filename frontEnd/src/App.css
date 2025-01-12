@@ -6,21 +6,6 @@
   min-height: 100vh;
 }
 
-.board {
-  padding: 2vmin; /* پدینگ متناسب با اندازه صفحه */
-  display: grid;
-  grid-template-columns: repeat(8, 1fr); /* 8 ستون */
-  grid-template-rows: repeat(8, 1fr);    /* 8 ردیف */
-  gap: 1vmin; /* فاصله بین سلول‌ها */
-  aspect-ratio: 1 / 1; /* نسبت 1:1 برای برد */
-  width: 90vmin;
-  max-width: 90vmin;
-  background: #4CAF50;
-  /* margin: auto; */
-  border-radius: 8px; /* گوشه‌های گرد برای زیبایی */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
-}
-
 .cell_container {
   background: #006800;
   border-radius: 8px; /* گوشه‌های گرد متناسب */
@@ -81,17 +66,33 @@ select{
 }
 
 .game-over {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: rgba(0, 0, 0, 0.7); /* پس‌زمینه نیمه‌شفاف */
-  z-index: 10;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 2rem;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }
+
+.game-over button {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  background: #4caf50;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.game-over button:hover {
+  background: #45a049;
+}
+
 
 .reset-button {
   padding: 1rem 2rem;
@@ -116,6 +117,9 @@ select{
   padding: 0.75rem;
   border-radius: 1rem;
   background-color: #ff0;
+  width: -webkit-fill-available;
+  margin: 0 0.5rem;
+  text-align: center;
 }
 
 .game_status{
@@ -124,6 +128,7 @@ select{
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
 }
 
 .currentPlayer{

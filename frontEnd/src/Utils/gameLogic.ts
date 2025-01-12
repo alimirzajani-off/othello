@@ -3,91 +3,20 @@ export type Counter = { black: number; white: number | null };
 export type Cell = Player | null;
 export type Board = Cell[][];
 
-export const evaluateBoard = (board: Board, player: Player): number => {
-  const opponent = player === "black" ? "white" : "black";
-  let playerScore = 0;
-  let opponentScore = 0;
-
-  const cornerPositions = [
-    [0, 0],
-    [0, 7],
-    [7, 0],
-    [7, 7],
-  ];
-
-  for (let x = 0; x < 8; x++) {
-    for (let y = 0; y < 8; y++) {
-      if (board[x][y] === player) {
-        playerScore += 1;
-
-        // امتیاز بیشتر برای گوشه‌ها
-        if (cornerPositions.some(([cx, cy]) => cx === x && cy === y)) {
-          playerScore += 5;
-        }
-      } else if (board[x][y] === opponent) {
-        opponentScore += 1;
-
-        if (cornerPositions.some(([cx, cy]) => cx === x && cy === y)) {
-          opponentScore += 5;
-        }
-      }
-    }
-  }
-
-  return playerScore - opponentScore;
-};
-
-export const minimax = (
-  board: Board,
-  depth: number,
-  maximizingPlayer: boolean,
-  player: Player,
-  alpha: number = -Infinity,
-  beta: number = Infinity
-): number => {
-  if (depth === 0 || getValidMoves(board, player).length === 0) {
-    return evaluateBoard(board, player);
-  }
-
-  const validMoves = getValidMoves(
-    board,
-    maximizingPlayer ? player : opponent(player)
-  );
-
-  if (maximizingPlayer) {
-    let maxEval = -Infinity;
-    for (const [x, y] of validMoves) {
-      const newBoard = flipCells(board, x, y, player);
-      const evalScore = minimax(
-        newBoard,
-        depth - 1,
-        false,
-        player,
-        alpha,
-        beta
-      );
-      maxEval = Math.max(maxEval, evalScore);
-      alpha = Math.max(alpha, evalScore);
-      if (beta <= alpha) break; // بریدن شاخه
-    }
-    return maxEval;
-  } else {
-    let minEval = Infinity;
-    for (const [x, y] of validMoves) {
-      const newBoard = flipCells(board, x, y, opponent(player));
-      const evalScore = minimax(newBoard, depth - 1, true, player, alpha, beta);
-      minEval = Math.min(minEval, evalScore);
-      beta = Math.min(beta, evalScore);
-      if (beta <= alpha) break; // بریدن شاخه
-    }
-    return minEval;
-  }
-};
+const directions = [
+  [-1, 0], // بالا
+  [1, 0], // پایین
+  [0, -1], // چپ
+  [0, 1], // راست
+  [-1, -1], // بالا-چپ
+  [-1, 1], // بالا-راست
+  [1, -1], // پایین-چپ
+  [1, 1], // پایین-راست
+];
 
 export const opponent = (player: Player): Player =>
   player === "black" ? "white" : "black";
 
-// مقدار اولیه صفحه
 export const initializeBoard = (): Board => {
   const board: Board = Array(8)
     .fill(null)
@@ -101,7 +30,6 @@ export const initializeBoard = (): Board => {
   return board;
 };
 
-// بررسی آیا حرکت معتبر است یا نه
 export const isValidMove = (
   board: Board,
   x: number,
@@ -143,7 +71,6 @@ export const getValidMoves = (
   return moves;
 };
 
-// تغییر رنگ مهره‌ها
 export const flipCells = (
   board: Board,
   x: number,
@@ -177,31 +104,18 @@ export const flipCells = (
   return newBoard;
 };
 
-const directions = [
-  [-1, 0], // بالا
-  [1, 0], // پایین
-  [0, -1], // چپ
-  [0, 1], // راست
-  [-1, -1], // بالا-چپ
-  [-1, 1], // بالا-راست
-  [1, -1], // پایین-چپ
-  [1, 1], // پایین-راست
-];
-
 export const getLegalMoves = (board: string[][], player: "black" | "white") => {
   const opponent = player === "black" ? "white" : "black";
   const legalMoves: { row: number; col: number }[] = [];
 
   for (let row = 0; row < board.length; row++) {
     for (let col = 0; col < board[row].length; col++) {
-      if (board[row][col] !== null) continue; // فقط خانه‌های خالی را بررسی می‌کنیم
-
+      if (board[row][col] !== null) continue; 
       for (const [dx, dy] of directions) {
         let x = row + dx;
         let y = col + dy;
         let hasOpponentBetween = false;
 
-        // حرکت در جهت فعلی
         while (
           x >= 0 &&
           y >= 0 &&
@@ -209,27 +123,56 @@ export const getLegalMoves = (board: string[][], player: "black" | "white") => {
           y < board[x].length &&
           board[x][y] === opponent
         ) {
-          hasOpponentBetween = true; // حداقل یک مهره حریف پیدا شده است
+          hasOpponentBetween = true;
           x += dx;
           y += dy;
         }
 
-        // بررسی شرایط نهایی
         if (
-          hasOpponentBetween && // حداقل یک مهره حریف باید بین باشد
+          hasOpponentBetween &&
           x >= 0 &&
           y >= 0 &&
           x < board.length &&
           y < board[x].length &&
-          board[x][y] === player // باید به مهره خودی ختم شود
+          board[x][y] === player // به مهره خودی ختم شود
         ) {
           legalMoves.push({ row, col });
-          break; // نیازی نیست دیگر جهت‌ها را بررسی کنیم
+          break;
         }
       }
     }
   }
+
   return legalMoves;
+};
+
+export const evaluateBoard = (board: Board, player: Player): number => {
+  const opponent = player === "black" ? "white" : "black";
+  let playerScore = 0;
+  let opponentScore = 0;
+
+  const cornerPositions = [
+    [0, 0],
+    [0, 7],
+    [7, 0],
+    [7, 7],
+  ];
+
+  for (let x = 0; x < 8; x++) {
+    for (let y = 0; y < 8; y++) {
+      if (board[x][y] === player) {
+        playerScore += 1;
+        if (cornerPositions.some(([cx, cy]) => cx === x && cy === y))
+          playerScore += 5;
+      } else if (board[x][y] === opponent) {
+        opponentScore += 1;
+        if (cornerPositions.some(([cx, cy]) => cx === x && cy === y))
+          opponentScore += 5;
+      }
+    }
+  }
+
+  return playerScore - opponentScore;
 };
 
 export const isGameOver = (board: string[][]) => {
