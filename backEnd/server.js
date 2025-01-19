@@ -1,55 +1,69 @@
-import { WebSocketServer } from "ws";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import WebSocket from "ws";
+import Message from "./models/Message.js"
+require("dotenv").config();
 
-const PORT = 8080;
-const wss = new WebSocketServer({ port: PORT });
+const app = express();
+const PORT = process.env.PORT || 5000;
 
-const rooms = {};
+// MongoDB connection
+mongoose
+  .connect(process.env.MONGO_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => console.log("MongoDB connection error:", err));
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// WebSocket server
+const wss = new WebSocket.Server({ noServer: true });
 
 wss.on("connection", (ws) => {
   console.log("Client connected");
 
   ws.on("message", (message) => {
-    const data = JSON.parse(message);
-    const { type, payload } = data;
+    console.log("Received:", message);
 
-    if (type === "join_room") {
-      const { roomId } = payload;
+    // Echo the message back to the client
+    // ws.send(`Server: ${message}`);
+    const parsedMessage = JSON.parse(message);
 
-      if (!rooms[roomId]) {
-        rooms[roomId] = [];
+    // Save to MongoDB
+    const newMessage = new Message({
+      content: parsedMessage.content,
+      sender: parsedMessage.sender,
+    });
+
+    await newMessage.save();
+
+    // Broadcast to all connected clients
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify(newMessage));
       }
-
-      rooms[roomId].push(ws);
-      console.log(`User joined room: ${roomId}`);
-
-      rooms[roomId].forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: "opponent_joined" }));
-        }
-      });
-    }
-
-    if (type === "move") {
-      const { roomId, move } = payload;
-
-      rooms[roomId].forEach((client) => {
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(JSON.stringify({ type: "move", payload: move }));
-        }
-      });
-    }
+    });
   });
+  });
+  
 
   ws.on("close", () => {
     console.log("Client disconnected");
-
-    for (const roomId in rooms) {
-      rooms[roomId] = rooms[roomId].filter((client) => client !== ws);
-      if (rooms[roomId].length === 0) {
-        delete rooms[roomId];
-      }
-    }
   });
 });
 
-console.log(`WebSocket server running on ws://localhost:${PORT}`);
+// Start HTTP and WebSocket server
+const server = app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
+
+server.on("upgrade", (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit("connection", ws, request);
+  });
+});
